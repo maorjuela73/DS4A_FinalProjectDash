@@ -1,0 +1,20 @@
+tr.slider-row {
+    height: 84px;
+}
+
+td.slider-td {
+    padding-top: 42px
+}
+
+.table tbody tr:hover td,
+.table tbody tr:hover th {
+  background-color: transparent;
+}
+
+.table-striped tbody tr:nth-child(odd):hover td {
+   background-color: #F9F9F9;
+}
+
+.card {
+    border: 0;
+}
