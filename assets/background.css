@@ -1,0 +1,11 @@
+html {
+    background-color: #343a40!important;
+}
+
+.jpcCTi {
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: column-reverse;
+}

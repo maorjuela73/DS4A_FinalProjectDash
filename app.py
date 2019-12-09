@@ -7,9 +7,13 @@ import dash_daq as daq
 from dash.dependencies import Input, Output
 import pandas as pd
 import os
+import pickle
 
 pd.set_option('max_columns', None)
 data = pd.read_csv('assets/data/tabla_final_google_2.csv')
+
+with open('assets/model/logit.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 app = dash.Dash(__name__, external_stylesheets=[
     dbc.themes.BOOTSTRAP,
@@ -25,7 +29,7 @@ tabs_styles = {
 tab_style = {
     'border': '0px',
     'backgroundColor': '#1D2024',
-    'borderBottom': '3px solid #1D2024',
+    'borderBottom': '5px solid #1D2024',
     'padding': '6px',
     'color': 'white',
     # 'margin': '4px',
@@ -41,121 +45,14 @@ tab_selected_style = {
     # 'margin': '4px',
 }
 
-table_header = [
-    html.Thead(html.Tr([html.Th("Feature name"),
-                        html.Th("Sensitivity")]))
-]
-
-row1 = html.Tr([
-    html.Td("Price"),
-    html.Td(dcc.Slider(
-        id='price_slider',
-        min=0,
-        max=9,
-        value=5,
-        step=0.01,
-        marks={'0': '0', '9': '9', '5': 'Current'},
-        tooltip={'always_visible': True},
-        ), className='slider-td'
-    )
-], className='slider-row')
-
-row2 = html.Tr([
-    html.Td("Size (KB)"),
-    html.Td(dcc.Slider(
-        id='size_slider',
-        min=0,
-        max=9,
-        value=5,
-        marks={'0': '0', '9': '9', '5': 'Current'},
-        tooltip={'always_visible': True},
-        ), className='slider-td'
-    )
-], className='slider-row')
-
-row3 = html.Tr([
-    html.Td("Content Rating"),
-    html.Td(dcc.Dropdown(
-        id='content_rating_dropdown',
-        options=[
-            {'label': 'Everyone', 'value': 'Everyone'},
-            {'label': 'Teen', 'value': 'Teen'},
-            {'label': 'Everyone 10+', 'value': 'Everyone 10+'},
-            {'label': 'Adults only 18+', 'value': 'Adults only 18+'},
-            {'label': 'Unrated', 'value': 'Unrated'}
-        ],
-        value=data[data['name'] == 'Airbnb']['Category'].to_list()[0]
-,
-    )
-    )
-])
-
-row4 = html.Tr([
-    html.Td("Name length"),
-    html.Td(dcc.Slider(
-        id='length_slider',
-        min=0,
-        max=9,
-        value=5,
-        marks={'0': '0', '9': '9', '5': 'Current'},
-        tooltip={'always_visible': True},
-        ), className='slider-td'
-    )
-], className='slider-row')
-
-row5 = html.Tr([
-    html.Td("Category"),
-    html.Td(dcc.Dropdown(
-        id='category_dropdown',
-        options=[
-                {'label': 'EDUCATION', 'value': 'EDUCATION'},
-                {'label': 'GAME', 'value': 'GAME'},
-                {'label': 'TOOLS', 'value': 'TOOLS'},
-                {'label': 'BOOKS_AND_REFERENCE', 'value': 'BOOKS_AND_REFERENCE'},
-                {'label': 'ENTERTAINMENT', 'value': 'ENTERTAINMENT'},
-                {'label': 'MUSIC_AND_AUDIO', 'value': 'MUSIC_AND_AUDIO'},
-                {'label': 'LIFESTYLE', 'value': 'LIFESTYLE'},
-                {'label': 'Other', 'value': 'Other'},
-                {'label': 'PERSONALIZATION', 'value': 'PERSONALIZATION'},
-                {'label': 'FINANCE', 'value': 'FINANCE'},
-                {'label': 'BUSINESS', 'value': 'BUSINESS'},
-                {'label': 'PRODUCTIVITY', 'value': 'PRODUCTIVITY'},
-                {'label': 'NEWS_AND_MAGAZINES', 'value': 'NEWS_AND_MAGAZINES'},
-                {'label': 'HEALTH_AND_FITNESS', 'value': 'HEALTH_AND_FITNESS'},
-                {'label': 'PHOTOGRAPHY', 'value': 'PHOTOGRAPHY'},
-                {'label': 'TRAVEL_AND_LOCAL', 'value': 'TRAVEL_AND_LOCAL'},
-                {'label': 'SPORTS', 'value': 'SPORTS'},
-                {'label': 'COMMUNICATION', 'value': 'COMMUNICATION'},
-                {'label': 'SHOPPING', 'value': 'SHOPPING'},
-                {'label': 'SOCIAL', 'value': 'SOCIAL'},
-                {'label': 'MAPS_AND_NAVIGATION', 'value': 'MAPS_AND_NAVIGATION'},
-                {'label': 'MEDICAL', 'value': 'MEDICAL'},
-                {'label': 'FOOD_AND_DRINK', 'value': 'FOOD_AND_DRINK'}
-            ],
-        )
-    )
-])
-
-table_body = [html.Tbody([row1, row2, row4, row3, row5])]
-
-table = dbc.Table(
-    # using the same table as in the above example
-    table_header + table_body,
-    bordered=True,
-    dark=True,
-    hover=True,
-    responsive=True,
-    striped=True,
-)
-
 app.layout = html.Div([
-
 
     dbc.Navbar(
         [
             dbc.Col([
                 html.Div(dbc.NavbarBrand("GOOGLE PLAY DASHBOARD", className="ml-2")),
-                html.Div(dbc.NavbarBrand(html.Small("Successing App Analysis for Investors and Developers", className="ml-2"))),
+                html.Div(dbc.NavbarBrand(
+                    html.Small("Successing App Analysis for Investors and Developers", className="ml-2"))),
             ]),
             html.A(
                 # Use row and col to control vertical alignment of logo / brand
@@ -176,80 +73,181 @@ app.layout = html.Div([
 
     html.Div(className='container-fluid', children=[
         dcc.Tabs([
-                dcc.Tab(label='FOR INVESTORS', children=[
+            dcc.Tab(label='FOR INVESTORS', children=[
 
-                ], style=tab_style, selected_style=tab_selected_style),
-                dcc.Tab(label='FOR DEVELOPERS', children=[
-                    dbc.Row([
-                        dbc.Col([
-
-                            dbc.Card([
-                                dbc.CardBody(
+            ], style=tab_style, selected_style=tab_selected_style),
+            dcc.Tab(label='FOR DEVELOPERS', children=[
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Card([
+                            dbc.CardBody([
+                                html.H4('Application Search'),
+                                dbc.Form([
                                     dbc.FormGroup([
                                         dbc.Label("App Name", html_for="example-email"),
                                         dbc.Input(type="text", id="app-name", placeholder="App name", value='Airbnb'),
-                                        dbc.Label("App Image", html_for="example-email"),
-                                        html.Div(
-                                            # html.Img(id='app-img', src='https://via.placeholder.com/180'),
-                                            html.Img(id='app-img', src='assets/images/apps-imgs/Airbnb.png'),
-                                        )
-                                    ], style={'margin-left': '4px'})
-                                )
-                            ], color="dark", inverse=True),
+                                    ]),
+                                    dbc.Button('Search', id='search-app-btn', color="primary", block=True),
+                                ], style={})
+                            ])
+                        ], color="dark", inverse=True),
+                        dbc.Card([
+                            dbc.CardBody([
+                                html.H4('Logo', className='imagelogo-title'),
+                                html.Div(
+                                    # html.Img(id='app-img', src='https://via.placeholder.com/180'),
+                                    html.Img(id='app-img', src='assets/images/apps-imgs/Airbnb.png',
+                                             className='img-fluid rounded mx-auto d-block'),
+                                ),
+                            ])
+                        ], color="dark", inverse=True),
 
+                    ], width=3),
 
+                    dbc.Col([
+                        dbc.Card([
+                            # dbc.CardHeader('Features'),
+                            dbc.CardBody([
+                                html.H4('Features'),
+                                dbc.Row([
+                                    dbc.Col(html.H6(['Price ']), width=4),
+                                    dbc.Col(dcc.Slider(
+                                        id='price_slider',
+                                        min=0,
+                                        max=9,
+                                        value=5,
+                                        step=0.01,
+                                        marks={'0': '0', '9': '9', '5': 'Current'},
+                                        tooltip={'always_visible': False},
+                                    ), className='slider-td'
+                                    ),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col(html.H6(['Size (KB) ']), width=4),
+                                    dbc.Col(dcc.Slider(
+                                        id='size_slider',
+                                        min=0,
+                                        max=9,
+                                        value=5,
+                                        marks={'0': '0', '9': '9', '5': 'Current'},
+                                        tooltip={'always_visible': False},
+                                    ), className='slider-td'
+                                    ),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col(html.H6(['Name length ']), width=4),
+                                    dbc.Col(dcc.Slider(
+                                        id='length_slider',
+                                        min=0,
+                                        max=9,
+                                        value=5,
+                                        marks={'0': '0', '9': '9', '5': 'Current'},
+                                        tooltip={'always_visible': False},
+                                    ), className='slider-td'
+                                    ),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col(html.H6(['Category ']), width=4),
+                                    dbc.Col(dcc.Dropdown(
+                                        id='category_dropdown',
+                                        options=[
+                                            {'label': 'EDUCATION', 'value': 'EDUCATION'},
+                                            {'label': 'GAME', 'value': 'GAME'},
+                                            {'label': 'TOOLS', 'value': 'TOOLS'},
+                                            {'label': 'BOOKS_AND_REFERENCE', 'value': 'BOOKS_AND_REFERENCE'},
+                                            {'label': 'ENTERTAINMENT', 'value': 'ENTERTAINMENT'},
+                                            {'label': 'MUSIC_AND_AUDIO', 'value': 'MUSIC_AND_AUDIO'},
+                                            {'label': 'LIFESTYLE', 'value': 'LIFESTYLE'},
+                                            {'label': 'Other', 'value': 'Other'},
+                                            {'label': 'PERSONALIZATION', 'value': 'PERSONALIZATION'},
+                                            {'label': 'FINANCE', 'value': 'FINANCE'},
+                                            {'label': 'BUSINESS', 'value': 'BUSINESS'},
+                                            {'label': 'PRODUCTIVITY', 'value': 'PRODUCTIVITY'},
+                                            {'label': 'NEWS_AND_MAGAZINES', 'value': 'NEWS_AND_MAGAZINES'},
+                                            {'label': 'HEALTH_AND_FITNESS', 'value': 'HEALTH_AND_FITNESS'},
+                                            {'label': 'PHOTOGRAPHY', 'value': 'PHOTOGRAPHY'},
+                                            {'label': 'TRAVEL_AND_LOCAL', 'value': 'TRAVEL_AND_LOCAL'},
+                                            {'label': 'SPORTS', 'value': 'SPORTS'},
+                                            {'label': 'COMMUNICATION', 'value': 'COMMUNICATION'},
+                                            {'label': 'SHOPPING', 'value': 'SHOPPING'},
+                                            {'label': 'SOCIAL', 'value': 'SOCIAL'},
+                                            {'label': 'MAPS_AND_NAVIGATION', 'value': 'MAPS_AND_NAVIGATION'},
+                                            {'label': 'MEDICAL', 'value': 'MEDICAL'},
+                                            {'label': 'FOOD_AND_DRINK', 'value': 'FOOD_AND_DRINK'}
+                                        ],
+                                    )
+                                    ),
+                                ]),
+                                dbc.Row([
+                                    dbc.Col(html.H6(['Content Rating ']), width=4),
+                                    dbc.Col(dcc.Dropdown(
+                                        id='content_rating_dropdown',
+                                        options=[
+                                            {'label': 'Everyone', 'value': 'Everyone'},
+                                            {'label': 'Teen', 'value': 'Teen'},
+                                            {'label': 'Everyone 10+', 'value': 'Everyone 10+'},
+                                            {'label': 'Adults only 18+', 'value': 'Adults only 18+'},
+                                            {'label': 'Unrated', 'value': 'Unrated'}
+                                        ],
+                                        value=data[data['name'] == 'Airbnb']['Category'].to_list()[0]
+                                        ,
+                                    )
+                                    ),
+                                ]),
+                            ]
+                            )
 
-                        ], width=3),
-
-                        dbc.Col([
-                            dbc.Card([
-                                dbc.CardHeader('Features'),
-                                dbc.CardBody(
-                                    table
-                                )
-
-                            ], color="dark", inverse=True)
-                        ], width=6),
-                        dbc.Col([
-                                dbc.Card(
+                        ], color="dark", inverse=True, className='features-card')
+                    ], width=6),
+                    dbc.Col([
+                        dbc.Card(
+                            dbc.CardBody([
+                                html.H4('Current Score'),
+                                html.Div(
                                     daq.LEDDisplay(
-                                      id='my-daq-leddisplay',
-                                      value=round(data[data['App Name'] == 'Airbnb']['ind_total_norm'].to_list()[0], 1),
+                                        id='my-daq-leddisplay',
+                                        value=round(data[data['App Name'] == 'Airbnb']['ind_total_norm'].to_list()[0], 1),
+                                        backgroundColor="#1D2024",
+                                        style={"textAlign": "center", "width": "0%"},
                                     )
                                 ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        daq.Gauge(
-                                            id='score_gauge',
-                                            style={
-                                                'color': '#1D2024',
-                                                'marginBottom': '0px',
-                                                'margin-bottom': '0px'
-                                            },
-                                            min=0.0,
-                                            max=5.0,
-                                            value=round(data[data['App Name'] == 'Airbnb']['ind_total_norm'].to_list()[0], 2),
-                                            size=200,
-                                            showCurrentValue=True,
-                                            units='Units',
-                                            labelPosition='bottom',
-                                            label={
-                                                'label': 'Success Index',
-                                                'style': {
-                                                    'color': '#FFFFFF',
-                                                    'fontSize': 24
-                                                }
-                                            }
-                                        )
-                                    ), color="dark", inverse=True
-                                )
-                            ]
-                            , width=3
-                        )
+                            ]), color="dark", inverse=True
+                        ),
+                        dbc.Card(
+                            dbc.CardBody([
+                                html.H4('Simulated Score'),
+                                html.Div(
+                                    daq.Gauge(
+                                        id='score_gauge',
+                                        style={
+                                            'color': '#1D2024',
+                                            'marginBottom': '0px',
+                                            'margin-bottom': '0px'
+                                        },
+                                        min=0.0,
+                                        max=5.0,
+                                        value=round(data[data['App Name'] == 'Airbnb']['ind_total_norm'].to_list()[0], 2),
+                                        size=200,
+                                        showCurrentValue=True,
+                                        units='Units',
+                                        # labelPosition='bottom',
+                                        # label={
+                                        #     'label': 'Success Index',
+                                        #     'style': {
+                                        #         'color': '#FFFFFF',
+                                        #         'fontSize': 24
+                                        #     }
+                                        # }
+                                    )
+                                ),
 
-                    ])
-                ], style=tab_style, selected_style=tab_selected_style),
-            ],
+                            ]), color="dark", inverse=True
+                        )], width=3
+                    )
+
+                ], className='')
+            ], style=tab_style, selected_style=tab_selected_style),
+        ],
         )
 
     ], style={'background-color': '#343a40'}),
@@ -352,7 +350,42 @@ def update_score_leddisplay(value):
     return v_current
 
 
-
+def puntuar(df, name_p, price_p, size_p, name_length_p, content_p, category_p):
+    aux = pd.DataFrame()
+    aux = df[df['name'] == name_p][
+        ['Intercept', 'Latest_Version', 'days_since_last_up', 'Minimum_Version_depends_on_device_0']]
+    aux['Price_1'] = price_p
+    aux['Size'] = size_p
+    aux['tamano_nombre'] = name_length_p
+    ###content_rating
+    content_aux = ''
+    if content_p == 'Everyone 10+':
+        content_aux = 'Content_Rating_Everyone_10'
+    if content_p == 'Teen':
+        content_aux = 'Content_Rating_Teen'
+    if content_p == 'Adults only 18+':
+        content_aux = 'Content_Rating_Adults_only_18'
+    if content_p == 'Unrated':
+        content_aux = 'Content_Rating_Unrated'
+    for i in ['Content_Rating_Everyone_10', 'Content_Rating_Adults_only_18', 'Content_Rating_Teen',
+              'Content_Rating_Unrated']:
+        if i == content_aux:
+            aux[i] = 1
+        else:
+            aux[i] = 0
+    ###category
+    category_aux = 'Category_' + category_p
+    for i in ['Category_BOOKS_AND_REFERENCE', 'Category_BUSINESS', 'Category_COMMUNICATION', 'Category_EDUCATION',
+              'Category_ENTERTAINMENT', 'Category_FINANCE', 'Category_FOOD_AND_DRINK', 'Category_GAME',
+              'Category_HEALTH_AND_FITNESS', 'Category_LIFESTYLE', 'Category_MAPS_AND_NAVIGATION', 'Category_MEDICAL',
+              'Category_MUSIC_AND_AUDIO', 'Category_NEWS_AND_MAGAZINES', 'Category_Other', 'Category_PERSONALIZATION',
+              'Category_PHOTOGRAPHY', 'Category_PRODUCTIVITY', 'Category_SHOPPING', 'Category_SOCIAL',
+              'Category_SPORTS', 'Category_TOOLS']:
+        if i == category_aux:
+            aux[i] = 1
+        else:
+            aux[i] = 0
+    return aux
 
 
 if __name__ == '__main__':

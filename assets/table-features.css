@@ -18,3 +18,7 @@ td.slider-td {
 .card {
     border: 0;
 }
+
+.features-card .row {
+    margin-top: 20px;
+}
