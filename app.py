@@ -332,13 +332,13 @@ def update_category_dropdown(value):
     return v_current
 
 
-@app.callback(
-    Output("score_gauge", "value"),
-    [Input("app-name", "value")],
-)
-def update_score_gauge(value):
-    v_current = round(data[data['App Name'] == value]['ind_total_norm'].to_list()[0], 2)
-    return v_current
+# @app.callback(
+#     Output("score_gauge", "value"),
+#     [Input("app-name", "value")],
+# )
+# def update_score_gauge(value):
+#     v_current = round(data[data['App Name'] == value]['ind_total_norm'].to_list()[0], 2)
+#     return v_current
 
 
 @app.callback(
@@ -350,7 +350,17 @@ def update_score_leddisplay(value):
     return v_current
 
 
-def puntuar(df,name_p,price_p,size_p,name_length_p,content_p,category_p):
+@app.callback(
+    Output("score_gauge", "value"),
+    [Input("app-name", "value"),
+     Input("price_slider", "value"),
+     Input("size_slider", "value"),
+     Input("length_slider", "value"),
+     Input("content_rating_dropdown", "value"),
+     Input("category_dropdown", "value")]
+)
+def puntuar(name_p,price_p,size_p,name_length_p,content_p,category_p):
+    df = data
     aux=pd.DataFrame()
     aux=df[df['name']==name_p][['Intercept','Price_1','Size','Latest_Version','days_since_last_up','tamano_nombre','Category_BOOKS_AND_REFERENCE','Category_BUSINESS','Category_COMMUNICATION','Category_EDUCATION','Category_ENTERTAINMENT','Category_FINANCE','Category_FOOD_AND_DRINK','Category_GAME','Category_HEALTH_AND_FITNESS','Category_LIFESTYLE','Category_MAPS_AND_NAVIGATION','Category_MEDICAL','Category_MUSIC_AND_AUDIO','Category_NEWS_AND_MAGAZINES','Category_Other','Category_PERSONALIZATION','Category_PHOTOGRAPHY','Category_PRODUCTIVITY','Category_SHOPPING','Category_SOCIAL','Category_SPORTS','Category_TOOLS','Content_Rating_Everyone_10','Content_Rating_Adults_only_18','Content_Rating_Teen','Content_Rating_Unrated','Minimum_Version_depends_on_device_0']]
     aux['Price_1']=price_p
