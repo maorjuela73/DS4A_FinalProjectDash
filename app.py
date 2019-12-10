@@ -13,7 +13,7 @@ pd.set_option('max_columns', None)
 data = pd.read_csv('assets/data/tabla_final_google_2.csv')
 
 with open('assets/model/logit.pkl', 'rb') as f:
-    model = pickle.load(f)
+    logit_res = pickle.load(f)
 
 app = dash.Dash(__name__, external_stylesheets=[
     dbc.themes.BOOTSTRAP,
@@ -350,42 +350,55 @@ def update_score_leddisplay(value):
     return v_current
 
 
-def puntuar(df, name_p, price_p, size_p, name_length_p, content_p, category_p):
-    aux = pd.DataFrame()
-    aux = df[df['name'] == name_p][
-        ['Intercept', 'Latest_Version', 'days_since_last_up', 'Minimum_Version_depends_on_device_0']]
-    aux['Price_1'] = price_p
-    aux['Size'] = size_p
-    aux['tamano_nombre'] = name_length_p
+def puntuar(df,name_p,price_p,size_p,name_length_p,content_p,category_p):
+    aux=pd.DataFrame()
+    aux=df[df['name']==name_p][['Intercept','Price_1','Size','Latest_Version','days_since_last_up','tamano_nombre','Category_BOOKS_AND_REFERENCE','Category_BUSINESS','Category_COMMUNICATION','Category_EDUCATION','Category_ENTERTAINMENT','Category_FINANCE','Category_FOOD_AND_DRINK','Category_GAME','Category_HEALTH_AND_FITNESS','Category_LIFESTYLE','Category_MAPS_AND_NAVIGATION','Category_MEDICAL','Category_MUSIC_AND_AUDIO','Category_NEWS_AND_MAGAZINES','Category_Other','Category_PERSONALIZATION','Category_PHOTOGRAPHY','Category_PRODUCTIVITY','Category_SHOPPING','Category_SOCIAL','Category_SPORTS','Category_TOOLS','Content_Rating_Everyone_10','Content_Rating_Adults_only_18','Content_Rating_Teen','Content_Rating_Unrated','Minimum_Version_depends_on_device_0']]
+    aux['Price_1']=price_p
+    aux['Size']=size_p
+    aux['tamano_nombre']=name_length_p
     ###content_rating
-    content_aux = ''
-    if content_p == 'Everyone 10+':
-        content_aux = 'Content_Rating_Everyone_10'
-    if content_p == 'Teen':
-        content_aux = 'Content_Rating_Teen'
-    if content_p == 'Adults only 18+':
-        content_aux = 'Content_Rating_Adults_only_18'
-    if content_p == 'Unrated':
-        content_aux = 'Content_Rating_Unrated'
-    for i in ['Content_Rating_Everyone_10', 'Content_Rating_Adults_only_18', 'Content_Rating_Teen',
-              'Content_Rating_Unrated']:
-        if i == content_aux:
-            aux[i] = 1
+    content_aux=''
+    if content_p=='Everyone 10+':
+            content_aux='Content_Rating_Everyone_10'
+    if content_p=='Teen':
+            content_aux='Content_Rating_Teen'
+    if content_p=='Adults only 18+':
+            content_aux='Content_Rating_Adults_only_18'
+    if content_p=='Unrated':
+            content_aux='Content_Rating_Unrated'
+    for i in ['Content_Rating_Everyone_10','Content_Rating_Adults_only_18','Content_Rating_Teen','Content_Rating_Unrated']:
+        if i==content_aux:
+                aux[i]=1
         else:
-            aux[i] = 0
+                aux[i]=0
     ###category
-    category_aux = 'Category_' + category_p
-    for i in ['Category_BOOKS_AND_REFERENCE', 'Category_BUSINESS', 'Category_COMMUNICATION', 'Category_EDUCATION',
-              'Category_ENTERTAINMENT', 'Category_FINANCE', 'Category_FOOD_AND_DRINK', 'Category_GAME',
-              'Category_HEALTH_AND_FITNESS', 'Category_LIFESTYLE', 'Category_MAPS_AND_NAVIGATION', 'Category_MEDICAL',
-              'Category_MUSIC_AND_AUDIO', 'Category_NEWS_AND_MAGAZINES', 'Category_Other', 'Category_PERSONALIZATION',
-              'Category_PHOTOGRAPHY', 'Category_PRODUCTIVITY', 'Category_SHOPPING', 'Category_SOCIAL',
-              'Category_SPORTS', 'Category_TOOLS']:
-        if i == category_aux:
-            aux[i] = 1
+    category_aux='Category_'+category_p
+    for i in ['Category_BOOKS_AND_REFERENCE','Category_BUSINESS','Category_COMMUNICATION','Category_EDUCATION','Category_ENTERTAINMENT','Category_FINANCE','Category_FOOD_AND_DRINK','Category_GAME','Category_HEALTH_AND_FITNESS','Category_LIFESTYLE','Category_MAPS_AND_NAVIGATION','Category_MEDICAL','Category_MUSIC_AND_AUDIO','Category_NEWS_AND_MAGAZINES','Category_Other','Category_PERSONALIZATION','Category_PHOTOGRAPHY','Category_PRODUCTIVITY','Category_SHOPPING','Category_SOCIAL','Category_SPORTS','Category_TOOLS']:
+        if i==category_aux:
+                aux[i]=1
         else:
-            aux[i] = 0
-    return aux
+                aux[i]=0
+
+    # testreturn = df[df['name'] == name_p][['Intercept', 'Price_1', 'Size', 'Latest_Version', 'days_since_last_up', 'tamano_nombre',
+    #                           'Category_BOOKS_AND_REFERENCE', 'Category_BUSINESS', 'Category_COMMUNICATION',
+    #                           'Category_EDUCATION', 'Category_ENTERTAINMENT', 'Category_FINANCE',
+    #                           'Category_FOOD_AND_DRINK', 'Category_GAME', 'Category_HEALTH_AND_FITNESS',
+    #                           'Category_LIFESTYLE', 'Category_MAPS_AND_NAVIGATION', 'Category_MEDICAL',
+    #                           'Category_MUSIC_AND_AUDIO', 'Category_NEWS_AND_MAGAZINES', 'Category_Other',
+    #                           'Category_PERSONALIZATION', 'Category_PHOTOGRAPHY', 'Category_PRODUCTIVITY',
+    #                           'Category_SHOPPING', 'Category_SOCIAL', 'Category_SPORTS', 'Category_TOOLS',
+    #                           'Content_Rating_Everyone_10', 'Content_Rating_Adults_only_18', 'Content_Rating_Teen',
+    #                           'Content_Rating_Unrated', 'Minimum_Version_depends_on_device_0']]
+
+    score_actual=(logit_res.predict(df[df['name']==name_p][['Intercept','Price_1','Size','Latest_Version','days_since_last_up','tamano_nombre','Category_BOOKS_AND_REFERENCE','Category_BUSINESS','Category_COMMUNICATION','Category_EDUCATION','Category_ENTERTAINMENT','Category_FINANCE','Category_FOOD_AND_DRINK','Category_GAME','Category_HEALTH_AND_FITNESS','Category_LIFESTYLE','Category_MAPS_AND_NAVIGATION','Category_MEDICAL','Category_MUSIC_AND_AUDIO','Category_NEWS_AND_MAGAZINES','Category_Other','Category_PERSONALIZATION','Category_PHOTOGRAPHY','Category_PRODUCTIVITY','Category_SHOPPING','Category_SOCIAL','Category_SPORTS','Category_TOOLS','Content_Rating_Everyone_10','Content_Rating_Adults_only_18','Content_Rating_Teen','Content_Rating_Unrated','Minimum_Version_depends_on_device_0']])).to_list()[0]
+    puntuacion_actual=df[df['name']==name_p]['ind_total_norm'].to_list()[0]
+    nuevo_score=logit_res.predict(aux).to_list()[0]
+    nueva_puntuacion=((nuevo_score*puntuacion_actual)/score_actual)
+    if nueva_puntuacion>=5 :
+        nueva_puntuacion=5
+    if nueva_puntuacion<0 :
+        nueva_puntuacion=0
+    return nueva_puntuacion
 
 
 if __name__ == '__main__':
