@@ -4,7 +4,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import pandas as pd
 import os
 import pickle
@@ -45,6 +45,7 @@ tab_selected_style = {
     # 'margin': '4px',
 }
 
+
 app.layout = html.Div([
 
     dbc.Navbar(
@@ -74,7 +75,46 @@ app.layout = html.Div([
     html.Div(className='container-fluid', children=[
         dcc.Tabs([
             dcc.Tab(label='FOR INVESTORS', children=[
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Card([
+                            dbc.CardBody([
+                                html.H4('Application Search'),
+                                dbc.Form([
+                                    dbc.FormGroup([
+                                        dbc.Label("App Name", html_for="example-email"),
+                                        dbc.Input(type="text", id="app-name-i", placeholder="App name", value='Airbnb'),
+                                    ]),
+                                    dbc.Button('Search', id='search-app-btn-i', color="primary", block=True),
+                                ], style={})
+                            ])
+                        ], color="dark", inverse=True),
+                        dbc.Card([
+                            dbc.CardBody([
+                                html.H4('Logo', className='imagelogo-title-i'),
+                                html.Div(
+                                    # html.Img(id='app-img', src='https://via.placeholder.com/180'),
+                                    html.Img(id='app-img-i', src='assets/images/apps-imgs/Airbnb.png',
+                                             className='img-fluid rounded mx-auto d-block'),
+                                ),
+                            ])
+                        ], color="dark", inverse=True),
+                    ], width=3),
+                    dbc.Col([
+                        dbc.Card([
+                            dbc.CardBody(
+                                html.H1('Que pasa')
 
+                            )
+                        ], color="dark", inverse=True),
+                        dbc.Card([
+                            dbc.CardBody(
+                                html.H5('Perros')
+
+                            )
+                        ], color="dark", inverse=True),
+                    ]),
+                ])
             ], style=tab_style, selected_style=tab_selected_style),
             dcc.Tab(label='FOR DEVELOPERS', children=[
                 dbc.Row([
@@ -257,9 +297,24 @@ app.layout = html.Div([
 
 @app.callback(
     Output("app-img", "src"),
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")]
 )
-def update_output(value):
+def update_output(n_clicks, value):
+
+    if os.path.isfile('assets/images/apps-imgs/' + value + '.png'):
+        return 'assets/images/apps-imgs/' + value + '.png'
+    else:
+        return 'https://via.placeholder.com/180'
+
+
+@app.callback(
+    Output("app-img-i", "src"),
+    [Input('search-app-btn-i', 'n_clicks')],
+    [State("app-name-i", "value")]
+)
+def update_output(n_clicks, value):
+
     if os.path.isfile('assets/images/apps-imgs/' + value + '.png'):
         return 'assets/images/apps-imgs/' + value + '.png'
     else:
@@ -272,9 +327,10 @@ def update_output(value):
      Output("price_slider", "max"),
      Output("price_slider", "marks")
      ],
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_price(value):
+def update_price(n_clicks, value):
     v_current = data[data['name'] == value]['Price_1'].to_list()[0]
     v_min = data['Price_1'].min()
     v_max = data['Price_1'].max()
@@ -288,9 +344,10 @@ def update_price(value):
      Output("size_slider", "max"),
      Output("size_slider", "marks")
      ],
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_size(value):
+def update_size(n_clicks, value):
     v_current = data[data['name'] == value]['Size'].to_list()[0]
     v_min = data['Size'].min()
     v_max = data['Size'].max()
@@ -304,9 +361,10 @@ def update_size(value):
      Output("length_slider", "max"),
      Output("length_slider", "marks")
      ],
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_length(value):
+def update_length(n_clicks, value):
     v_current = data[data['name'] == value]['tamano_nombre'].to_list()[0]
     v_min = data['tamano_nombre'].min()
     v_max = data['tamano_nombre'].max()
@@ -316,18 +374,20 @@ def update_length(value):
 
 @app.callback(
     Output("content_rating_dropdown", "value"),
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_content_rating_dropdown(value):
+def update_content_rating_dropdown(n_clicks, value):
     v_current = data[data['name'] == value]['Content Rating'].to_list()[0]
     return v_current
 
 
 @app.callback(
     Output("category_dropdown", "value"),
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_category_dropdown(value):
+def update_category_dropdown(n_clicks, value):
     v_current = data[data['name'] == value]['Category'].to_list()[0]
     return v_current
 
@@ -343,9 +403,10 @@ def update_category_dropdown(value):
 
 @app.callback(
     Output("my-daq-leddisplay", "value"),
-    [Input("app-name", "value")],
+    [Input('search-app-btn', 'n_clicks')],
+    [State("app-name", "value")],
 )
-def update_score_leddisplay(value):
+def update_score_leddisplay(n_clicks, value):
     v_current = round(data[data['App Name'] == value]['ind_total_norm'].to_list()[0], 1)
     return v_current
 
